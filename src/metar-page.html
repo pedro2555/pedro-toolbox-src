@@ -18,6 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 
 <dom-module id="metar-page">
   <template>
@@ -30,14 +31,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       paper-icon-item {
         color: black;
       }
-      paper-progress {
-        margin: 0;
-        width: 100%
+      paper-spinner {
+        margin: 0 auto;
       }
     </style>
 
     <iron-ajax
       id="metar"
+      auto
+      url="{{url}}"
       handle-as="json"
       last-response="{{metar}}"
       debounce-duration="300"
@@ -49,14 +51,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <paper-input autocapitalize label="Station ICAO" value="{{station}}"></paper-input>
       </div>
 
-      <template is="dom-if" if="{{metarFound(metar)}}">
-        <div class="card-content">
-          <paper-item>
-            <paper-item-body two-line>
-              <div>[[metar.Info.ICAO]] [[metar.Info.Name]]</div>
-              <div secondary>[[metar.Info.City]], [[metar.Info.Country]]</div>
-            </paper-item-body>
-          </paper-item>
+      <div class="card-content">
+
+        <paper-item>
+          <paper-item-body two-line>
+
+            <div>[[metar.Station]] [[metar.Info.Name]]</div>
+            <div secondary>[[metar.Info.City]] [[metar.Info.Country]]</div>
+
+            <template is="dom-if" if="{{notMetarFound(metar)}}">
+              <paper-spinner active>...</paper-spinner>
+            </template>
+
+          </paper-item-body>
+        </paper-item>
+
+        <template is="dom-if" if="{{metarFound(metar)}}">
 
           <paper-icon-item>
             <paper-item-body two-line>
@@ -120,8 +130,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-item>
         </div>
       </template>
-    </div>
-  </template>
+    </template>
+  </div>
 
   <script>
     class MyView1 extends Polymer.Element {
@@ -131,8 +141,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return {
           station: {
             type: String,
-            // Observer method identified by name
-            observer: '_stationChanged'
+            value: '',
+            notify: true
+          },
+          url: {
+            computed: '_computeUrl(station)'
+          },
+          isLoading: {
+            type: Boolean
           }
         }
       }
@@ -141,12 +157,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return (metar && !metar.Error && !this.isLoading);
       }
 
-      // Observer method defined as a class method
-      _stationChanged(newValue, oldValue) {
-        if (newValue.length == 4) {
-          this.$.metar.url = "https://avwx.rest/api/metar/" + newValue + "?options=info,translate";
-          this.$.metar.generateRequest();
+      notMetarFound(metar) {
+        return !this.metarFound(metar);
+      }
+
+      _computeUrl(station) {
+        if (station.length == 4) {
+          this.metar = null;
+          return ["https://avwx.rest/api/metar", station].join('/') + "?options=info,translate";
         }
+        return null;
       }
 
       getRawReport(metar) {
