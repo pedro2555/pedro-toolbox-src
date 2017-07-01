@@ -1,0 +1,21 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/pedro-toolbox-app.html",
+  "fragments": [
+    "src/home-page.html",
+    "src/metar-page.html",
+    "src/my-view404.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "images/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/*.js"
+  ],
+  "lint": {
+    "rules": ["polymer-2"]
+  }
+}
