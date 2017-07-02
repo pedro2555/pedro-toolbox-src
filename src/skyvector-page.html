@@ -1,0 +1,51 @@
+<!--
+@license
+Pedro's Toolbox App
+Copyright (C) 2017  Pedro Rodrigues <prodrigues1990@gmail.com>
+
+This file is part of Pedro's Toolbox App.
+
+Pedro's Toolbox App is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2 of the License.
+
+Pedro's Toolbox App is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="skyvector-page">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        height: 100%;
+
+        padding: 10px;
+      }
+
+      iframe {
+
+      }
+    </style>
+
+    <iframe width="100%" height="100%" src="https://skyvector.com/"></iframe>
+
+  </template>
+
+  <script>
+    class SkyvectorPage extends Polymer.Element {
+      static get is() { return 'skyvector-page'; }
+    }
+
+    window.customElements.define(SkyvectorPage.is, SkyvectorPage);
+  </script>
+</dom-module>

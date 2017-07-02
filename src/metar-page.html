@@ -20,158 +20,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
 
+<link rel="import" href="./fsn-avwx-metar/fsn-avwx-metar.html">
+
 <dom-module id="metar-page">
   <template>
     <style include="shared-styles">
       :host {
         display: block;
       }
-
-      paper-item,
-      paper-icon-item {
-        color: black;
-      }
-      paper-spinner {
-        margin: 0 auto;
-      }
     </style>
 
-    <iron-ajax
-      id="metar"
-      auto
-      url="{{url}}"
-      handle-as="json"
-      last-response="{{metar}}"
-      debounce-duration="300"
-      loading="{{isloading}}"></iron-ajax>
+    <fsn-avwx-metar show-search-bar></fsn-avwx-metar>
 
-    <div class="card">
-
-      <div class="card-actions">
-        <paper-input autocapitalize label="Station ICAO" value="{{station}}"></paper-input>
-      </div>
-
-      <div class="card-content">
-
-        <paper-item>
-          <paper-item-body two-line>
-
-            <div>[[metar.Station]] [[metar.Info.Name]]</div>
-            <div secondary>[[metar.Info.City]] [[metar.Info.Country]]</div>
-
-            <template is="dom-if" if="{{notMetarFound(metar)}}">
-              <paper-spinner active>...</paper-spinner>
-            </template>
-
-          </paper-item-body>
-        </paper-item>
-
-        <template is="dom-if" if="{{metarFound(metar)}}">
-
-          <paper-icon-item>
-            <paper-item-body two-line>
-              <div>[[metar.Translations.Wind]]</div>
-              <div secondary>Winds</div>
-            </paper-item-body>
-          </paper-icon-item>
-
-          <paper-icon-item>
-            <paper-item-body two-line>
-              <div>[[metar.Translations.Visibility]]</div>
-              <div secondary>Visibility</div>
-            </paper-item-body>
-          </paper-icon-item>
-
-          <paper-icon-item>
-            <paper-item-body two-line>
-              <div>[[metar.Translations.Clouds]]</div>
-              <div secondary>Clouds</div>
-            </paper-item-body>
-          </paper-icon-item>
-
-          <paper-icon-item>
-            <paper-item-body three-line>
-              <div>[[metar.Translations.Temperature]]</div>
-              <div>[[metar.Translations.Dewpoint]]</div>
-              <div secondary>Temperature and Dewpoint</div>
-            </paper-item-body>
-          </paper-icon-item>
-
-          <paper-icon-item>
-            <paper-item-body two-line>
-              <div>[[metar.Translations.Altimeter]]</div>
-              <div secondary>Altimeter</div>
-            </paper-item-body>
-          </paper-icon-item>
-
-          <template is="dom-if" if="[[metar.Translations.Other]]">
-            <paper-icon-item>
-              <paper-item-body two-line>
-                <div>[[metar.Translations.Other]]</div>
-                <div secondary>Additional Information</div>
-              </paper-item-body>
-            </paper-icon-item>
-          </template>
-
-          <template is="dom-if" if="[[metar.Remarks]]">
-            <paper-icon-item>
-              <paper-item-body two-line>
-                <div>[[metar.Remarks]]</div>
-                <div secondary>Remarks</div>
-              </paper-item-body>
-            </paper-icon-item>
-          </template>
-
-          <paper-item>
-            <paper-item-body two-line>
-              <div>[[getRawReport(metar)]]</div>
-              <div secondary>Raw report</div>
-            </paper-item-body>
-          </paper-item>
-        </div>
-      </template>
-    </template>
-  </div>
+  </template>
 
   <script>
     class MetarPage extends Polymer.Element {
       static get is() { return 'metar-page'; }
-
-      static get properties() {
-        return {
-          station: {
-            type: String,
-            value: '',
-            notify: true
-          },
-          url: {
-            computed: '_computeUrl(station)'
-          },
-          isLoading: {
-            type: Boolean
-          }
-        }
-      }
-
-      metarFound(metar) {
-        return (metar && !metar.Error && !this.isLoading);
-      }
-
-      notMetarFound(metar) {
-        return !this.metarFound(metar);
-      }
-
-      _computeUrl(station) {
-        if (station.length == 4) {
-          this.metar = null;
-          return ["https://avwx.rest/api/metar", station].join('/') + "?options=info,translate";
-        }
-        return null;
-      }
-
-      getRawReport(metar) {
-        return metar['Raw-Report'];
-      }
     }
 
     window.customElements.define(MetarPage.is, MetarPage);

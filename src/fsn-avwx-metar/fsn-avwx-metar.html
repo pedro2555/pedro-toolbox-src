@@ -1,0 +1,214 @@
+<!--
+@license
+Pedro's Toolbox App
+Copyright (C) 2017  Pedro Rodrigues <prodrigues1990@gmail.com>
+
+This file is part of Pedro's Toolbox App.
+
+Pedro's Toolbox App is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2 of the License.
+
+Pedro's Toolbox App is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+
+<dom-module id="fsn-avwx-metar">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      paper-spinner {
+        margin: 0 auto;
+      }
+      paper-item,
+      paper-icon-item {
+        color: black;
+      }
+    </style>
+
+    <iron-ajax
+      id="metar"
+      auto
+      url="[[url]]"
+      handle-as="json"
+      last-response="{{metar}}"
+      debounce-duration="300"
+      loading="{{isloading}}"></iron-ajax>
+
+    <div class="card">
+
+      <template is="dom-if" if="[[showSearchBar]]">
+        <div class="card-actions">
+          <paper-input autocapitalize label="ICAO" value="{{searchValue}}"></paper-input>
+        </div>
+      </template>
+
+      <div class="card-content">
+
+        <!--Either show spinner, error, or found metar-->
+        <paper-item>
+          <paper-item-body two-line>
+
+            <template is="dom-if" if="{{_isMetar(metar)}}">
+              <div>[[metar.Station]] [[metar.Info.Name]]</div>
+              <div secondary>[[metar.Info.City]] [[metar.Info.Country]]</div>
+            </template>
+
+            <template is="dom-if" if="{{_isLoading(metar)}}">
+              <paper-spinner active></paper-spinner>
+            </template>
+
+            <template is="dom-if" if="{{_isError(metar)}}">
+              <p>[[metar.Error]]</p>
+            </template>
+
+          </paper-item-body>
+        </paper-item>
+
+        <!-- 
+        Display all known metar properties
+        -->
+        <template is="dom-if" if="{{_isMetar(metar)}}">
+
+          <!--All of those are always present-->
+          <paper-icon-item>
+            <paper-item-body two-line>
+              <div>[[metar.Translations.Wind]]</div>
+              <div secondary>Winds</div>
+            </paper-item-body>
+          </paper-icon-item>
+
+          <paper-icon-item>
+            <paper-item-body two-line>
+              <div>[[metar.Translations.Visibility]]</div>
+              <div secondary>Visibility</div>
+            </paper-item-body>
+          </paper-icon-item>
+
+          <paper-icon-item>
+            <paper-item-body two-line>
+              <div>[[metar.Translations.Clouds]]</div>
+              <div secondary>Clouds</div>
+            </paper-item-body>
+          </paper-icon-item>
+
+          <paper-icon-item>
+            <paper-item-body three-line>
+              <div>[[metar.Translations.Temperature]]</div>
+              <div>[[metar.Translations.Dewpoint]]</div>
+              <div secondary>Temperature and Dewpoint</div>
+            </paper-item-body>
+          </paper-icon-item>
+
+          <paper-icon-item>
+            <paper-item-body two-line>
+              <div>[[metar.Translations.Altimeter]]</div>
+              <div secondary>Altimeter</div>
+            </paper-item-body>
+          </paper-icon-item>
+
+          <!--Next two may or not be present, so checking for that before stamping them-->
+          <template is="dom-if" if="[[metar.Translations.Other]]">
+            <paper-icon-item>
+              <paper-item-body two-line>
+                <div>[[metar.Translations.Other]]</div>
+                <div secondary>Additional Information</div>
+              </paper-item-body>
+            </paper-icon-item>
+          </template>
+
+          <template is="dom-if" if="[[metar.Remarks]]">
+            <paper-icon-item>
+              <paper-item-body two-line>
+                <div>[[metar.Remarks]]</div>
+                <div secondary>Remarks</div>
+              </paper-item-body>
+            </paper-icon-item>
+          </template>
+
+          <!--For last the raw report, in case some actual info was missed above-->
+          <paper-item>
+            <paper-item-body two-line>
+              <div>[[_getRawReport(metar)]]</div>
+              <div secondary>Raw report</div>
+            </paper-item-body>
+          </paper-item>
+
+        </template>
+
+      </div>
+
+    </div>
+  </template>
+
+  <script>
+    class FsnAvwxMetar extends Polymer.Element {
+      static get is() { return 'fsn-avwx-metar'; }
+
+      static get properties() {
+        return {
+          showSearchBar: {
+            type: Boolean,
+            value: false
+          },
+          metar: {
+            type: Object,
+            value: undefined,
+            notify: true
+          },
+          searchValue: {
+            type: String,
+            notify: true
+          },
+          url: {
+            computed: '_computeUrl(searchValue)'
+          }
+        }
+      }
+
+      _computeUrl(searchValue) {
+        if (searchValue.length == 4) {
+          this.metar = null;
+          return ["https://avwx.rest/api/metar", searchValue].join('/') + "?options=info,translate";
+        }
+        return null;
+      }
+
+      _isError(metar) {
+        return metar != null && metar.Error != undefined;
+      }
+
+      _isLoading(metar) {
+        return metar == null;
+      }
+
+      _isMetar(metar) {
+        return metar != null && metar != undefined && metar.Error == undefined;
+      }
+
+      _getRawReport(metar) {
+        return metar['Raw-Report'];
+      }
+
+    }
+
+    window.customElements.define(FsnAvwxMetar.is, FsnAvwxMetar);
+  </script>
+</dom-module>
