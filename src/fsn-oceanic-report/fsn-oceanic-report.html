@@ -74,49 +74,54 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           </paper-item-body>
         </paper-item>
 
-        <!--Oceanic Entry-->
+        <!--
+        Oceanic Entry
+        -->
         <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
+
+          <!--Get time at position from user-->
+          <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{timeAtCurrent}}"
+                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                       auto-validate>
+          </paper-input>
+
+          <!--Show usefull phraseology-->
           <paper-item>
             <paper-item-body two-line>
-              <div>
-                <paper-input label="Simulator time at {{currentWaypoint}}"
-                             value="{{timeAtCurrent}}"
-                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                             auto-validate>
-                </paper-time>
-              </div>
-              <div secondary>Requesting clearence to {{destination}} via {{oceanicRoute}}, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, Estimating {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu</div>
+              <div>Requesting clearence to {{destination}} via {{oceanicRoute}}, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, Estimating {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtCurrent}} zulu</div>
+              <div secondary>Clearence phraseology</div>
             </paper-item-body>
           </paper-item>
+
         </template>
 
-        <!--Position report-->
+        <!--
+        Position report
+        -->
         <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
 
+          <!--Get time at position from user-->
+          <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{timeAtCurrent}}"
+                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                       auto-validate>
+          </paper-input>
+
+          <!--Get time at next position from user-->
+          <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{timeAtNext}}"
+                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                       auto-validate>
+          </paper-input>
+
+          <!--Show usefull phraseology-->
           <paper-item>
             <paper-item-body two-line>
-              <div>
-                <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
-                             value="{{timeAtCurrent}}"
-                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                             auto-validate>
-                </paper-time>
-              </div>
-              <div secondary>Reporting position {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, estimating {{_getNextWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtNext}} zulu, next is {{_getAfterNextWaypoint(oceanicRoute, currentPosition)}}</div>
+              <div>Reporting position {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtCurrent}} zulu, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, estimating {{_getNextWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtNext}} zulu, next is {{_getAfterNextWaypoint(oceanicRoute, currentPosition)}}</div>
+              <div secondary>Position Report phraseology</div>
             </paper-item-body>
           </paper-item>
-
-          <paper-icon-item>
-            <paper-item-body>
-              <div>
-                <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
-                             value="{{timeAtNext}}"
-                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                             auto-validate>
-                  </paper-time>
-              </div>
-            <paper-item-body>
-          </paper-icon-item>
 
         </template>
 
@@ -249,6 +254,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
       handleRewindClick() {
         if (this._canRewind(this.currentPosition, this.oceanicRoute)) {
+          this.timeAtCurrent = "";
+          this.timeAtNext = "";
           this.currentPosition--;
         }
       }
