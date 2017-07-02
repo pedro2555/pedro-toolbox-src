@@ -37,6 +37,9 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
         padding: 10px;
       }
+      paper-button {
+        margin: 14px auto;
+      }
     </style>
 
     <div class="card">
@@ -51,11 +54,24 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
       <div class="card-content">
 
+        <paper-item>
+          <paper-item-body two-line>
+            <div>{{_getCurrentWaypoint(oceanicRoute, currentPosition)}}</div>
+            <div secondary>Flying to position</div>
+          </paper-item-body>
+        </paper-item>
+
         <!--Oceanic Entry-->
         <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
           <paper-item>
             <paper-item-body two-line>
-              <div><paper-input label="Simulator time at {{currentWaypoint}}" value="{{timeAtCurrent}}"></paper-time></div>
+              <div>
+                <paper-input label="Simulator time at {{currentWaypoint}}"
+                             value="{{timeAtCurrent}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                </paper-time>
+              </div>
               <div secondary>Requesting clearence to {{destination}} via {{oceanicRoute}}, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, Estimating {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu</div>
             </paper-item-body>
           </paper-item>
@@ -67,7 +83,11 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           <paper-item>
             <paper-item-body two-line>
               <div>
-                <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}" value="{{timeAtCurrent}}"></paper-time>
+                <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                             value="{{timeAtCurrent}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                </paper-time>
               </div>
               <div secondary>Reporting position {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, estimating {{_getNextWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtNext}} zulu, next is {{_getAfterNextWaypoint(oceanicRoute, currentPosition)}}</div>
             </paper-item-body>
@@ -76,7 +96,11 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           <paper-icon-item>
             <paper-item-body>
               <div>
-                <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}" value="{{timeAtNext}}"></paper-time>
+                <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+                             value="{{timeAtNext}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                  </paper-time>
               </div>
           </paper-icon-item>
 
@@ -85,7 +109,9 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         <paper-icon-item>
           <paper-item-body>
             <div>
-              <paper-button on-tap="{{_advance()}}">Next</paper-button>
+              <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
+                <paper-button on-tap="handleAdvanceClick">Next</paper-button>
+              </template>
             </div>
         </paper-icon-item>
 
@@ -102,7 +128,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         return {
           currentPosition: {
             type: Number,
-            value: 0,
+            value: -1,
             notify: true
           },
           oceanicRoute: {
@@ -130,6 +156,17 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
             value: "370"
           }
         }
+      }
+
+      static get observers() {
+        return [
+            // go back to clearence on new routes (unfortunately, also on route corrections)
+            '_updatePosition(oceanicRoute)'
+        ]
+      }
+
+      _updatePosition(route) {
+        this.currentPosition = -1;
       }
 
       _requiresClearence(position) {
@@ -170,10 +207,24 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         }
       }
 
-      _advance() {
-        console.log("clicked")
+      _canAdvance(position, route) {
+        var waypoints = route.split(" ");
+        // if on the last waypoint do not advance
+        return (position < waypoints.length - 1);
       }
 
+      handleAdvanceClick() {
+        var waypoints = this.oceanicRoute.split(" ");
+        if (this._canAdvance(this.currentPosition, this.oceanicRoute)) {
+          if (this.currentPosition >= 0) {
+            this.timeAtCurrent = this.timeAtNext;
+            this.timeAtNext = "";
+          }
+
+          this.currentPosition++;
+        }
+        
+      }
     }
 
     window.customElements.define(FsnOceanicReport.is, FsnOceanicReport);
