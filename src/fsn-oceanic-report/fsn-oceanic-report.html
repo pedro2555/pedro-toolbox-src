@@ -1,0 +1,260 @@
+<!--
+@license
+Pedro's Toolbox App
+Copyright (C) 2017  Pedro Rodrigues <prodrigues1990@gmail.com>
+
+This file is part of Pedro's Toolbox App.
+
+Pedro's Toolbox App is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2 of the License.
+
+Pedro's Toolbox App is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="fsn-oceanic-report">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      .item-group {
+        display: inline-block;
+        margin: 14px auto;
+      }
+    </style>
+
+    <div class="card">
+
+      <div class="card-actions">
+        <paper-input autocapitalize label="Destination"
+                                    value="{{destination}}"
+                                    pattern="^[A-Za-z0-9]{4}$"
+                                    auto-validate>
+        </paper-input>
+        <paper-input autocapitalize label="Oceanic Route" value="{{oceanicRoute}}"></paper-input>
+        <paper-input autocapitalize label="Cruise Speed (Mach)"
+                                    value="{{cruiseSpeed}}"
+                                    pattern="^\.[\d]{2}$"
+                                    auto-validate>
+        </paper-input>
+        <paper-input autocapitalize label="Cruise Altitude (Flight Level)"
+                                    value="{{cruiseAltitude}}"
+                                    pattern="^[\d]{2}0$"
+                                    auto-validate>
+        </paper-input>
+        <paper-checkbox value="{{simTimeIsUtc}}" checked> Simulator is UTC</paper-checkbox>
+      </div>
+
+      <div class="card-content">
+
+        <paper-item>
+          <paper-item-body two-line>
+            <div>{{_getCurrentWaypoint(oceanicRoute, currentPosition)}}</div>
+            <div secondary>Flying to position</div>
+          </paper-item-body>
+        </paper-item>
+
+        <!--Oceanic Entry-->
+        <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
+          <paper-item>
+            <paper-item-body two-line>
+              <div>
+                <paper-input label="Simulator time at {{currentWaypoint}}"
+                             value="{{timeAtCurrent}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                </paper-time>
+              </div>
+              <div secondary>Requesting clearence to {{destination}} via {{oceanicRoute}}, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, Estimating {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu</div>
+            </paper-item-body>
+          </paper-item>
+        </template>
+
+        <!--Position report-->
+        <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
+
+          <paper-item>
+            <paper-item-body two-line>
+              <div>
+                <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                             value="{{timeAtCurrent}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                </paper-time>
+              </div>
+              <div secondary>Reporting position {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at {{timeAtCurrent}} zulu, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, estimating {{_getNextWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtNext}} zulu, next is {{_getAfterNextWaypoint(oceanicRoute, currentPosition)}}</div>
+            </paper-item-body>
+          </paper-item>
+
+          <paper-icon-item>
+            <paper-item-body>
+              <div>
+                <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+                             value="{{timeAtNext}}"
+                             pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                             auto-validate>
+                  </paper-time>
+              </div>
+            <paper-item-body>
+          </paper-icon-item>
+
+        </template>
+
+        <paper-item>
+          <paper-item-body>
+            <div class="item-group">
+              <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
+                <paper-button on-tap="handleRewindClick">Rewind</paper-button>
+              </template>
+              <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
+                <paper-button on-tap="handleAdvanceClick">Next</paper-button>
+              </template>
+            </div>
+          <paper-item-body>
+        </paper-item>
+
+      </div>
+    </div>
+
+  </template>
+
+  <script>
+    class FsnOceanicReport extends Polymer.Element {
+      static get is() { return 'fsn-oceanic-report'; }
+
+      static get properties() {
+        return {
+          currentPosition: {
+            type: Number,
+            value: -1,
+            notify: true
+          },
+          oceanicRoute: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            value: "RKDIA 3050N 3840N 4430N 4820N 5010N PAVLO"
+          },
+          destination: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            value: "EHAM"
+          },
+          cruiseSpeed: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            value: ".87"
+          },
+          cruiseAltitude: {
+            type: String,
+            notify: true,
+            reflectToAttribute: true,
+            value: "370"
+          }
+        }
+      }
+
+      static get observers() {
+        return [
+            // go back to clearence on new routes (unfortunately, also on route corrections)
+            '_updatePosition(oceanicRoute)'
+        ]
+      }
+
+      _updatePosition(route) {
+        this.currentPosition = -1;
+      }
+
+      _requiresClearence(position) {
+        return (position == -1);
+      }
+
+      _hasClearence(position) {
+        return (position > -1);
+      }
+
+      _getCurrentWaypoint(route, position) {
+        position = (position == -1) ? 0 : position
+        var waypoints = route.split(" ");
+        if (waypoints.length >= position + 1) {
+          return waypoints[position];
+        } else {
+          return "";
+        }
+      }
+
+      _getNextWaypoint(route, position) {
+        position = (position == -1) ? 0 : position
+        var waypoints = route.split(" ");
+        if (waypoints.length >= position + 2) {
+          return waypoints[position + 1];
+        } else {
+          return "";
+        }
+      }
+
+      _getAfterNextWaypoint(route, position) {
+        position = (position == -1) ? 0 : position
+        var waypoints = route.split(" ");
+        if (waypoints.length >= position + 3) {
+          return waypoints[position + 2];
+        } else {
+          return "";
+        }
+      }
+
+      _canAdvance(position, route) {
+        var waypoints = route.split(" ");
+        // if on the last waypoint do not advance
+        return (position < waypoints.length - 1);
+      }
+
+      handleAdvanceClick() {
+        var waypoints = this.oceanicRoute.split(" ");
+        if (this._canAdvance(this.currentPosition, this.oceanicRoute)) {
+          if (this.currentPosition >= 0) {
+            this.timeAtCurrent = this.timeAtNext;
+            this.timeAtNext = "";
+          }
+
+          this.currentPosition++;
+        }
+      }
+
+      _canRewind(position, route) {
+        return (position > -1);
+      }
+
+      handleRewindClick() {
+        if (this._canRewind(this.currentPosition, this.oceanicRoute)) {
+          this.currentPosition--;
+        }
+      }
+
+    }
+
+    window.customElements.define(FsnOceanicReport.is, FsnOceanicReport);
+  </script>
+</dom-module>
