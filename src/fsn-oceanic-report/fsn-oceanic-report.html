@@ -37,7 +37,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
         padding: 10px;
       }
-      paper-button {
+      .item-group {
+        display: inline-block;
         margin: 14px auto;
       }
     </style>
@@ -45,10 +46,22 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
     <div class="card">
 
       <div class="card-actions">
-        <paper-input autocapitalize label="Destination" value="{{destination}}"></paper-input>
+        <paper-input autocapitalize label="Destination"
+                                    value="{{destination}}"
+                                    pattern="^[A-Za-z0-9]{4}$"
+                                    auto-validate>
+        </paper-input>
         <paper-input autocapitalize label="Oceanic Route" value="{{oceanicRoute}}"></paper-input>
-        <paper-input autocapitalize label="Cruise Speed (Mach)" value="{{cruiseSpeed}}"></paper-input>
-        <paper-input autocapitalize label="Cruise Altitude (Flight Level)" value="{{cruiseAltitude}}"></paper-input>
+        <paper-input autocapitalize label="Cruise Speed (Mach)"
+                                    value="{{cruiseSpeed}}"
+                                    pattern="^\.[\d]{2}$"
+                                    auto-validate>
+        </paper-input>
+        <paper-input autocapitalize label="Cruise Altitude (Flight Level)"
+                                    value="{{cruiseAltitude}}"
+                                    pattern="^[\d]{2}0$"
+                                    auto-validate>
+        </paper-input>
         <paper-checkbox value="{{simTimeIsUtc}}" checked> Simulator is UTC</paper-checkbox>
       </div>
 
@@ -102,18 +115,23 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
                              auto-validate>
                   </paper-time>
               </div>
+            <paper-item-body>
           </paper-icon-item>
 
         </template>
 
-        <paper-icon-item>
+        <paper-item>
           <paper-item-body>
-            <div>
+            <div class="item-group">
+              <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
+                <paper-button on-tap="handleRewindClick">Rewind</paper-button>
+              </template>
               <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
                 <paper-button on-tap="handleAdvanceClick">Next</paper-button>
               </template>
             </div>
-        </paper-icon-item>
+          <paper-item-body>
+        </paper-item>
 
       </div>
     </div>
@@ -223,8 +241,18 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
           this.currentPosition++;
         }
-        
       }
+
+      _canRewind(position, route) {
+        return (position > -1);
+      }
+
+      handleRewindClick() {
+        if (this._canRewind(this.currentPosition, this.oceanicRoute)) {
+          this.currentPosition--;
+        }
+      }
+
     }
 
     window.customElements.define(FsnOceanicReport.is, FsnOceanicReport);
