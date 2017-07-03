@@ -1,6 +1,6 @@
 {
-  "name": "Pedro Toolbox App",
-  "short_name": "Pedro Toolbox",
+  "name": "Pedro's Toolbox",
+  "short_name": "Pedro's Toolbox",
   "start_url": "./?homescreen=1",
   "display": "standalone",
   "theme_color": "#3f51b5",

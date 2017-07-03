@@ -60,124 +60,112 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       }
     </style>
 
-    <div class="card">
+    <paper-input class="group3"
+                 autocapitalize
+                 label="Destination"
+                 value="{{destination}}"
+                 pattern="^[A-Za-z0-9]{4}$"
+                 auto-validate>
+    </paper-input>
 
-      <div class="card-actions">
+    <paper-input class="group3"
+                 autocapitalize
+                 label="Cruise Altitude"
+                 value="{{cruiseAltitude}}"
+                 pattern="^[\d]{2}0$"
+                 auto-validate>
+    </paper-input>
 
-        <paper-input class="group3"
-                     autocapitalize
-                     label="Destination"
-                     value="{{destination}}"
-                     pattern="^[A-Za-z0-9]{4}$"
-                     auto-validate>
-        </paper-input>
+    <paper-input class="group3"
+                 autocapitalize
+                 label="Cruise Speed"
+                 value="{{cruiseSpeed}}"
+                 pattern="^\.[\d]{2}$"
+                 auto-validate>
+    </paper-input>
 
-        <paper-input class="group3"
-                     autocapitalize
-                     label="Cruise Altitude (Flight Level)"
-                     value="{{cruiseAltitude}}"
-                     pattern="^[\d]{2}0$"
-                     auto-validate>
-        </paper-input>
+    <paper-textarea autocapitalize
+                    label="Oceanic Route"
+                    value="{{oceanicRoute}}">
+    </paper-textarea>
+    
+    <paper-icon-item>
+      <paper-item-body two-line>
+        <div>{{_getCurrentWaypoint(oceanicRoute, currentPosition)}}</div>
+        <div secondary>Flying to position</div>
+      </paper-item-body>
+    </paper-icon-item>
 
-        <paper-input class="group3"
-                     autocapitalize
-                     label="Cruise Speed (Mach)"
-                     value="{{cruiseSpeed}}"
-                     pattern="^\.[\d]{2}$"
-                     auto-validate>
-        </paper-input>
+    <paper-input class="" label="Time in simulator"
+                 value="{{_timeInSim}}"
+                 pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                 auto-validate>
+    </paper-input>
 
-        <paper-textarea autocapitalize
-                        label="Oceanic Route"
-                        value="{{oceanicRoute}}">
-        </paper-textarea>
-        
-      </div>
+    <!--
+    Oceanic Entry
+    -->
+    <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
 
-      <div class="card-content">
+      <!--Get time at position from user-->
+      <paper-input class="group2"
+                   label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                   value="{{_timeAtCurrent}}"
+                   pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                   auto-validate>
+      </paper-input>
 
-        <paper-icon-item>
-          <paper-item-body two-line>
-            <div>{{_getCurrentWaypoint(oceanicRoute, currentPosition)}}</div>
-            <div secondary>Flying to position</div>
-          </paper-item-body>
-        </paper-icon-item>
+      <!--Show usefull phraseology-->
+      <paper-item>
+        <paper-item-body two-line>
+          <div>{{clearencePhraseology}}</div>
+          <div secondary>Clearence phraseology</div>
+        </paper-item-body>
+      </paper-item>
 
-        <paper-input class="" label="Time in simulator"
-                     value="{{_timeInSim}}"
-                     pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                     auto-validate>
-        </paper-input>
-<!--         <paper-checkbox class="group2" value="{{simTimeIsUtc}}" checked> Simulator is UTC</paper-checkbox> -->
+    </template>
 
-        <!--
-        Oceanic Entry
-        -->
-        <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
+    <!--
+    Position report
+    -->
+    <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
 
-          <!--Get time at position from user-->
-          <paper-input class="group2"
-                       label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{_timeAtCurrent}}"
-                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                       auto-validate>
-          </paper-input>
+      <!--Get time at position from user-->
+      <paper-input class="group2"
+                   label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                   value="{{_timeAtCurrent}}"
+                   pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                   auto-validate>
+      </paper-input>
 
-          <!--Show usefull phraseology-->
-          <paper-item>
-            <paper-item-body two-line>
-              <div>{{clearencePhraseology}}</div>
-              <div secondary>Clearence phraseology</div>
-            </paper-item-body>
-          </paper-item>
+      <!--Get time at next position from user-->
+      <paper-input class="group2"
+                   label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+                   value="{{_timeAtNext}}"
+                   pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                   auto-validate>
+      </paper-input>
 
+      <!--Show usefull phraseology-->
+      <paper-item>
+        <paper-item-body two-line>
+          <div>{{positionReportPhraseology}}</div>
+          <div secondary>Position report phraseology</div>
+        </paper-item-body>
+      </paper-item>
+
+    </template>
+
+    <paper-item>
+      <div class="item-group">
+        <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
+          <paper-button on-tap="handleRewindClick">Previous</paper-button>
         </template>
-
-        <!--
-        Position report
-        -->
-        <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
-
-          <!--Get time at position from user-->
-          <paper-input class="group2"
-                       label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{_timeAtCurrent}}"
-                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                       auto-validate>
-          </paper-input>
-
-          <!--Get time at next position from user-->
-          <paper-input class="group2"
-                       label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{_timeAtNext}}"
-                       pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
-                       auto-validate>
-          </paper-input>
-
-          <!--Show usefull phraseology-->
-          <paper-item>
-            <paper-item-body two-line>
-              <div>{{positionReportPhraseology}}</div>
-              <div secondary>Position report phraseology</div>
-            </paper-item-body>
-          </paper-item>
-
+        <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
+          <paper-button on-tap="handleAdvanceClick">Next</paper-button>
         </template>
-
-        <paper-item>
-          <div class="item-group">
-            <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
-              <paper-button on-tap="handleRewindClick">Previous</paper-button>
-            </template>
-            <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
-              <paper-button on-tap="handleAdvanceClick">Next</paper-button>
-            </template>
-          </div>
-        </paper-item>
-
       </div>
-    </div>
+    </paper-item>
 
   </template>
 
