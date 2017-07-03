@@ -23,6 +23,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-if.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
@@ -41,38 +42,67 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         display: inline-block;
         margin: 14px auto;
       }
+      paper-input,
+      paper-checkbox {
+        margin: 14px auto;
+      }
+      .group2 {
+        display: inline-block;
+        width: 49.5%;
+      }
+      .group3 {
+        display: inline-block;
+        width: 32.8%;
+      }
+      .group4 {
+        display: inline-block;
+        width: 24.5%;
+      }
     </style>
 
     <div class="card">
 
       <div class="card-actions">
-        <paper-input autocapitalize label="Destination"
+
+        <paper-input class="group3" autocapitalize label="Destination"
                                     value="{{destination}}"
                                     pattern="^[A-Za-z0-9]{4}$"
                                     auto-validate>
         </paper-input>
-        <paper-input autocapitalize label="Oceanic Route" value="{{oceanicRoute}}"></paper-input>
-        <paper-input autocapitalize label="Cruise Speed (Mach)"
-                                    value="{{cruiseSpeed}}"
-                                    pattern="^\.[\d]{2}$"
-                                    auto-validate>
-        </paper-input>
-        <paper-input autocapitalize label="Cruise Altitude (Flight Level)"
+
+        <paper-input class="group3" autocapitalize label="Cruise Altitude (Flight Level)"
                                     value="{{cruiseAltitude}}"
                                     pattern="^[\d]{2}0$"
                                     auto-validate>
         </paper-input>
-        <paper-checkbox value="{{simTimeIsUtc}}" checked> Simulator is UTC</paper-checkbox>
+
+        <paper-input class="group3" autocapitalize label="Cruise Speed (Mach)"
+                                    value="{{cruiseSpeed}}"
+                                    pattern="^\.[\d]{2}$"
+                                    auto-validate>
+        </paper-input>
+
+        <paper-textarea autocapitalize label="Oceanic Route"
+                                       value="{{oceanicRoute}}">
+        </paper-textarea>
+        
       </div>
 
       <div class="card-content">
 
-        <paper-item>
+        <paper-icon-item>
           <paper-item-body two-line>
             <div>{{_getCurrentWaypoint(oceanicRoute, currentPosition)}}</div>
             <div secondary>Flying to position</div>
           </paper-item-body>
-        </paper-item>
+        </paper-icon-item>
+
+        <paper-input class="" label="Time in simulator"
+                     value="{{_timeInSim}}"
+                     pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
+                     auto-validate>
+        </paper-input>
+<!--         <paper-checkbox class="group2" value="{{simTimeIsUtc}}" checked> Simulator is UTC</paper-checkbox> -->
 
         <!--
         Oceanic Entry
@@ -80,8 +110,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
 
           <!--Get time at position from user-->
-          <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{timeAtCurrent}}"
+          <paper-input class="group2" label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{_timeAtCurrent}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
           </paper-input>
@@ -89,7 +119,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           <!--Show usefull phraseology-->
           <paper-item>
             <paper-item-body two-line>
-              <div>Requesting clearence to {{destination}} via {{oceanicRoute}}, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, Estimating {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtCurrent}} zulu</div>
+              <div>{{clearencePhraseology}}</div>
               <div secondary>Clearence phraseology</div>
             </paper-item-body>
           </paper-item>
@@ -102,15 +132,15 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
 
           <!--Get time at position from user-->
-          <paper-input label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{timeAtCurrent}}"
+          <paper-input class="group2" label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{_timeAtCurrent}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
           </paper-input>
 
           <!--Get time at next position from user-->
-          <paper-input label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
-                       value="{{timeAtNext}}"
+          <paper-input class="group2" label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+                       value="{{_timeAtNext}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
           </paper-input>
@@ -118,7 +148,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           <!--Show usefull phraseology-->
           <paper-item>
             <paper-item-body two-line>
-              <div>Reporting position {{_getCurrentWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtCurrent}} zulu, FL{{cruiseAltitude}}, Mach {{cruiseSpeed}}, estimating {{_getNextWaypoint(oceanicRoute, currentPosition)}} at time {{timeAtNext}} zulu, next is {{_getAfterNextWaypoint(oceanicRoute, currentPosition)}}</div>
+              <div>{{positionReportPhraseology}}</div>
               <div secondary>Position Report phraseology</div>
             </paper-item-body>
           </paper-item>
@@ -126,16 +156,14 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         </template>
 
         <paper-item>
-          <paper-item-body>
-            <div class="item-group">
-              <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
-                <paper-button on-tap="handleRewindClick">Rewind</paper-button>
-              </template>
-              <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
-                <paper-button on-tap="handleAdvanceClick">Next</paper-button>
-              </template>
-            </div>
-          <paper-item-body>
+          <div class="item-group">
+            <template is="dom-if" if="{{_canRewind(currentPosition, oceanicRoute)}}">
+              <paper-button on-tap="handleRewindClick">Previous</paper-button>
+            </template>
+            <template is="dom-if" if="{{_canAdvance(currentPosition, oceanicRoute)}}">
+              <paper-button on-tap="handleAdvanceClick">Next</paper-button>
+            </template>
+          </div>
         </paper-item>
 
       </div>
@@ -177,6 +205,42 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
             notify: true,
             reflectToAttribute: true,
             value: "370"
+          },
+          _timeInSim: {
+            type: String,
+            notify: true,
+            value: function() {
+              var datetime = new Date();
+              return this._getStringFromDate(datetime);
+            }
+          },
+          _timeAtCurrent: {
+            type: String,
+            notify: true,
+            value: function() {
+              var datetime = new Date();
+              return this._getStringFromDate(datetime);
+            }
+          },
+          _timeAtNext: {
+            type: String,
+            notify: true,
+            value: function() {
+              var datetime = new Date();
+              return this._getStringFromDate(datetime);
+            }
+          },
+          clearencePhraseology: {
+            computed: '_getClearencePhraseology(destination, oceanicRoute, cruiseAltitude, cruiseSpeed, timeAtCurrent)'
+          },
+          positionReportPhraseology: {
+            computed: '_getPositionReportPhraseology(oceanicRoute, currentPosition, cruiseAltitude, cruiseSpeed, timeAtCurrent, timeAtNext)'
+          },
+          timeAtCurrent: {
+            computed: '_getActualTimeAtPosition(_timeInSim, _timeAtCurrent)'
+          },
+          timeAtNext: {
+            computed: '_getActualTimeAtPosition(_timeInSim, _timeAtNext)'
           }
         }
       }
@@ -186,6 +250,50 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
             // go back to clearence on new routes (unfortunately, also on route corrections)
             '_updatePosition(oceanicRoute)'
         ]
+      }
+
+      _getClearencePhraseology(destination, route, cruiseAltitude, cruiseSpeed, timeAtCurrent) {
+        return "Requesting clearence to " + destination + " via " + route + ", FL" + cruiseAltitude + ", Mach " + cruiseSpeed + ", Estimating " + this._getCurrentWaypoint(route, -1) + " at time " + timeAtCurrent + " zulu";
+      }
+
+      _getPositionReportPhraseology(route, position, cruiseAltitude, cruiseSpeed, timeAtCurrent, timeAtNext) {
+        // current position
+        var report = "Reporting position " + this._getCurrentWaypoint(route, position) + " at time " + timeAtCurrent + " zulu, FL" + cruiseAltitude + ", Mach " + cruiseSpeed;
+
+        // next position
+        if (this._getNextWaypoint(route, position) != "") {
+          report += ", estimating " + this._getNextWaypoint(route, position) + " at time " + timeAtNext + " zulu";
+        }
+        
+        // position after next
+        if (this._getAfterNextWaypoint(route, position) != "") {
+          report += ", next is " + this._getAfterNextWaypoint(route, position);
+        }
+
+        return report;
+      }
+
+      _getActualTimeAtPosition(_timeInSim, _timeAtPosition) {
+        _timeInSim      = this._getDateFromUTCString(_timeInSim);
+        _timeAtPosition = this._getDateFromUTCString(_timeAtPosition);
+
+        var diff = _timeAtPosition.getTime() - _timeInSim.getTime();
+        var utc = new Date().getTime();
+
+        return this._getStringFromDate(new Date(utc + diff));
+      }
+
+      _getDateFromUTCString(timeString) {
+        var datetime = new Date();
+
+        datetime.setUTCHours(timeString.substring(0, 2));
+        datetime.setUTCMinutes(timeString.substring(2));
+
+        return datetime;
+      }
+
+      _getStringFromDate(datetime) {
+        return datetime.getUTCHours().toString().padStart(2, "0") + datetime.getUTCMinutes().toString().padStart(2, "0");
       }
 
       _updatePosition(route) {
