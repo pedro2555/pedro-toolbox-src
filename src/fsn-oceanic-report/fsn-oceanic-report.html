@@ -64,26 +64,33 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 
       <div class="card-actions">
 
-        <paper-input class="group3" autocapitalize label="Destination"
-                                    value="{{destination}}"
-                                    pattern="^[A-Za-z0-9]{4}$"
-                                    auto-validate>
+        <paper-input class="group3"
+                     autocapitalize
+                     label="Destination"
+                     value="{{destination}}"
+                     pattern="^[A-Za-z0-9]{4}$"
+                     auto-validate>
         </paper-input>
 
-        <paper-input class="group3" autocapitalize label="Cruise Altitude (Flight Level)"
-                                    value="{{cruiseAltitude}}"
-                                    pattern="^[\d]{2}0$"
-                                    auto-validate>
+        <paper-input class="group3"
+                     autocapitalize
+                     label="Cruise Altitude (Flight Level)"
+                     value="{{cruiseAltitude}}"
+                     pattern="^[\d]{2}0$"
+                     auto-validate>
         </paper-input>
 
-        <paper-input class="group3" autocapitalize label="Cruise Speed (Mach)"
-                                    value="{{cruiseSpeed}}"
-                                    pattern="^\.[\d]{2}$"
-                                    auto-validate>
+        <paper-input class="group3"
+                     autocapitalize
+                     label="Cruise Speed (Mach)"
+                     value="{{cruiseSpeed}}"
+                     pattern="^\.[\d]{2}$"
+                     auto-validate>
         </paper-input>
 
-        <paper-textarea autocapitalize label="Oceanic Route"
-                                       value="{{oceanicRoute}}">
+        <paper-textarea autocapitalize
+                        label="Oceanic Route"
+                        value="{{oceanicRoute}}">
         </paper-textarea>
         
       </div>
@@ -110,7 +117,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         <template is="dom-if" if="{{_requiresClearence(currentPosition)}}">
 
           <!--Get time at position from user-->
-          <paper-input class="group2" label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+          <paper-input class="group2"
+                       label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
                        value="{{_timeAtCurrent}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
@@ -132,14 +140,16 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         <template is="dom-if" if="{{_hasClearence(currentPosition)}}">
 
           <!--Get time at position from user-->
-          <paper-input class="group2" label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
+          <paper-input class="group2"
+                       label="Simulator time at {{_getCurrentWaypoint(oceanicRoute, currentPosition)}}"
                        value="{{_timeAtCurrent}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
           </paper-input>
 
           <!--Get time at next position from user-->
-          <paper-input class="group2" label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
+          <paper-input class="group2"
+                       label="Simulator time at {{_getNextWaypoint(oceanicRoute, currentPosition)}}"
                        value="{{_timeAtNext}}"
                        pattern="^([01]\d|2[0-3]):?([0-5]\d)$"
                        auto-validate>
@@ -149,7 +159,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           <paper-item>
             <paper-item-body two-line>
               <div>{{positionReportPhraseology}}</div>
-              <div secondary>Position Report phraseology</div>
+              <div secondary>Position report phraseology</div>
             </paper-item-body>
           </paper-item>
 
@@ -186,25 +196,25 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
             type: String,
             notify: true,
             reflectToAttribute: true,
-            value: "RKDIA 3050N 3840N 4430N 4820N 5010N PAVLO"
+            value: ""
           },
           destination: {
             type: String,
             notify: true,
             reflectToAttribute: true,
-            value: "EHAM"
+            value: ""
           },
           cruiseSpeed: {
             type: String,
             notify: true,
             reflectToAttribute: true,
-            value: ".87"
+            value: ""
           },
           cruiseAltitude: {
             type: String,
             notify: true,
             reflectToAttribute: true,
-            value: "370"
+            value: ""
           },
           _timeInSim: {
             type: String,
@@ -253,7 +263,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       }
 
       _getClearencePhraseology(destination, route, cruiseAltitude, cruiseSpeed, timeAtCurrent) {
-        return "Requesting clearence to " + destination + " via " + route + ", FL" + cruiseAltitude + ", Mach " + cruiseSpeed + ", Estimating " + this._getCurrentWaypoint(route, -1) + " at time " + timeAtCurrent + " zulu";
+        return "Requesting clearence to " + destination + " via " + route + ", FL" + cruiseAltitude + ", Mach " + cruiseSpeed + ", estimating " + this._getCurrentWaypoint(route, -1) + " at time " + timeAtCurrent + " zulu";
       }
 
       _getPositionReportPhraseology(route, position, cruiseAltitude, cruiseSpeed, timeAtCurrent, timeAtNext) {
