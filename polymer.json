@@ -4,6 +4,7 @@
   "fragments": [
     "src/home-page.html",
     "src/metar-page.html",
+    "src/oceanic-report-page.html",
     "src/my-view404.html"
   ],
   "sources": [
