@@ -7,6 +7,9 @@ mv .gitbuild build/default/.git
 
 cd build/default
 
-git checkout master --force
-git commit -m ""
+echo "<?php include_once(\"index.html\"); ?>" > index.php
+
+git checkout master
+git add . --all
+git commit -m "Deploy"
 git push origin master

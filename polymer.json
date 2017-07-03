@@ -5,9 +5,7 @@
     "src/home-page.html",
     "src/metar-page.html",
     "src/oceanic-report-page.html",
-    "src/my-view404.html",
-    "src/fsn-avwx-metar/fsn-avwx-metar.html",
-    "src/fsn-oceanic-report/fsn-oceanic-report.html"
+    "src/my-view404.html"
   ],
   "sources": [
     "src/**/*",
