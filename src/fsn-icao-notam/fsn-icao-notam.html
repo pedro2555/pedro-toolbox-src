@@ -1,0 +1,176 @@
+<!--
+@license
+Pedro's Toolbox App
+Copyright (C) 2017  Pedro Rodrigues <prodrigues1990@gmail.com>
+
+This file is part of Pedro's Toolbox App.
+
+Pedro's Toolbox App is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 2 of the License.
+
+Pedro's Toolbox App is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+
+<dom-module id="fsn-icao-notam">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      html {
+        white-space: warp;
+      }
+      paper-spinner {
+        margin: 0 auto;
+      }
+      paper-item,
+      paper-icon-item {
+        color: black;
+      }
+      .long {
+        padding-top: 15px;
+        padding-bottom: 15px;
+      }
+      .warp {
+        white-space: pre-wrap;
+      }
+    </style>
+
+    <iron-ajax
+      id="notam"
+      auto
+      url="[[url]]"
+      handle-as="json"
+      last-response="{{notams}}"
+      debounce-duration="300"
+      loading="{{isloading}}"></iron-ajax>
+
+    <template is="dom-if" if="[[showSearchBar]]">
+      <paper-input autocapitalize label="ICAO" value="{{searchValue}}"></paper-input>
+    </template>
+
+    <template is="dom-repeat" items="{{notams}}">
+      <paper-item>
+        <paper-item-body two-line>
+
+            <div>[[item.key]]</div>
+
+          <template is="dom-if" if="{{_isLoading(notam)}}">
+            <paper-spinner active></paper-spinner>
+          </template>
+
+          <template is="dom-if" if="{{_isError(notam)}}">
+            <p>[[metar.Error]]</p>
+          </template>
+
+        </hr>
+        </paper-item-body>
+      </paper-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.startdate]]</div>
+          <div secondary>Valid From</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.enddate]]</div>
+          <div secondary>Valid Until</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.SubArea]]</div>
+          <div secondary>Area</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.Subject]]</div>
+          <div secondary>Subject</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item class="long">
+        <paper-item-body two-line>
+          <div class="warp">[[item.message]]</div>
+          <div secondary>Message</div>
+        </paper-item-body>
+      </paper-icon-item>
+    </template>
+
+  </template>
+
+  <script>
+    class FsnIcaoNotam extends Polymer.Element {
+      static get is() { return 'fsn-icao-notam'; }
+
+      static get properties() {
+        return {
+          showSearchBar: {
+            type: Boolean,
+            value: false
+          },
+          notams: {
+            type: Array,
+            value: undefined,
+            notify: true
+          },
+          searchValue: {
+            type: String,
+            notify: true
+          },
+          url: {
+            computed: '_computeUrl(searchValue)'
+          }
+        }
+      }
+
+      _computeUrl(searchValue) {
+        if (searchValue.length == 4) {
+          this.metar = null;
+          return ["https://v4p4sz5ijk.execute-api.us-east-1.amazonaws.com/anbdata/states/notams/notams-list?api_key=2a877ab0-4ed2-11e7-9b2e-d3182793b831&format=json&locations", searchValue].join('=');
+        }
+        return null;
+      }
+
+      _isError(metar) {
+        return metar != null && metar.Error != undefined;
+      }
+
+      _isLoading(metar) {
+        return metar == null;
+      }
+
+      _isMetar(metar) {
+        return metar != null && metar != undefined && metar.Error == undefined;
+      }
+
+    }
+
+    window.customElements.define(FsnIcaoNotam.is, FsnIcaoNotam);
+  </script>
+</dom-module>
