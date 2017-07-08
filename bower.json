@@ -25,7 +25,9 @@
     "iron-input": "PolymerElements/iron-input#^2.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^2.0.0",
     "paper-checkbox": "PolymerElements/paper-checkbox#^2.0.0",
-    "paper-button": "PolymerElements/paper-button#^2.0.0"
+    "paper-button": "PolymerElements/paper-button#^2.0.0",
+    "paper-fab": "PolymerElements/paper-fab#^2.0.0",
+    "google-map": "GoogleWebComponents/google-map#2.0-preview"
   },
   "resolutions": {
     "polymer": "^2.0.0-rc.3"

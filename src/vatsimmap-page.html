@@ -1,0 +1,181 @@
+<!--
+Copyright (C) 2017  Pedro Rodrigues <prodrigues1990@gmail.com>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="vatsimmap-page">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+      google-map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+      }
+      paper-fab {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+      }
+    </style>
+
+    <iron-ajax
+          auto
+          id="ajax"
+          url="{{_getClientURL()}}"
+          handle-as="json"
+          last-response="{{clients}}"></iron-ajax>
+
+    <google-map
+          additional-map-options='{"mapTypeId":"satellite"}'
+          disable-default-ui
+          fit-to-marker
+          api-key="AIzaSyDj4y39JAORYGw4rNcA1y8oVj0m8lNDje4"
+          latitude="40.0955474"
+          longitude="-3.070306"
+          zoom="4"
+          drag-events="true"
+          id="map">
+
+      <template is="dom-repeat" items="[[clients._items]]">
+        <google-map-marker latitude="{{_getLatitudeFromLocation(item.location)}}" longitude="{{_getLongitudeFromLocation(item.location)}}" draggable="false" title="{{item.callsign}} - {{item.realname}}" icon="circle"></google-map-marker>
+      </template>
+
+    </google-map>
+
+  </template>
+
+  <script>
+
+    class VatsimmapPage extends Polymer.Element {
+      static get is() { return 'vatsimmap-page'; }
+
+      static get observers() {
+        return [
+            'view_location_change(map.latitude, map.longitude)'
+        ]
+      }
+
+      static get properties() {
+        return {
+          lastLatitude: {
+            type: Number,
+            value: 0
+          },
+          lastLongitude: {
+            type: Number,
+            value: 0
+          },
+          lastZoom: {
+            type: Number,
+            value: 0
+          }
+        }
+      }
+
+      ready() {
+        super.ready();
+
+        this.$.map.addEventListener('google-map-dragend', e => {this._mapDrag(e)});
+
+      }
+
+      _mapDrag(e) {
+        var update = false;
+        console.log(Math.abs(this.$.map.latitude - this.lastLatitude));
+        if (Math.abs(this.$.map.latitude - this.lastLatitude) > 2) {
+          this.lastLatitude = this.$.map.latitude;
+          update = true;
+        }
+        if (Math.abs(this.$.map.longitude - this.lastLongitude) > 2) {
+          this.lastLongitude = this.$.map.longitude;
+          update = true;
+        }
+        if (Math.abs(this.$.map.zoom - this.lastZoom) > 2) {
+          this.lastZoom = this.$.map.zoom;
+          update = true;
+        }
+
+        if (update) {
+          this.$.ajax.url = this._getClientURL();
+          this.$.ajax.generateRequest();
+        }
+      }
+
+      handleResponse() {
+        this.async(function() {
+          try {
+            //console.log(this.$.ajax.url);
+            this.$.ajax.url = this._getClientURL();
+            this.$.ajax.generateRequest();
+          } catch(err) {
+            console.log(err);
+          }
+        }, 5000);
+      }
+      _getMapCenterLatitude() {
+        if (this.$.map.map) {
+          return this.$.map.map.getCenter().lat();
+        } else {
+          return 0;
+        }
+      }
+      _getMapCenterLongitude() {
+        if (this.$.map.map) {
+          return this.$.map.map.getCenter().lng();
+        } else {
+          return 0;
+        }
+      }
+      _getMapViewRadius() {
+        if (this.$.map.map) {
+          var bounds = this.$.map.map.getBounds();
+          var center = this.$.map.map.getCenter();
+          if (bounds && center) {
+            var ne = bounds.getNorthEast();
+            return google.maps.geometry.spherical.computeDistanceBetween(center, ne);
+          }
+          return 12000000;
+        } else {
+          return 12000000;
+        }
+      }
+      _getLatitudeFromLocation(location) {
+        return parseFloat(location.toString().split(',')[1]);
+      }
+      _getLongitudeFromLocation(location) {
+        return parseFloat(location.toString().split(',')[0]);
+      }
+      _getClientURL() {
+        try {
+          //return 'http://localhost:5000/clients?where={"location":{"$near":{"$geometry":{"type":"Point","coordinates":[long,lat]},"$maxDistance":range}}}'.replace('lat', this._getMapCenterLatitude()).replace('long', this._getMapCenterLongitude()).replace('range', parseInt(this._getMapViewRadius()) * 1.2)
+          return 'https://vatsim-status-proxy.herokuapp.com/clients?where={"location":{"$near":{"$geometry":{"type":"Point","coordinates":[long,lat]},"$maxDistance":range}}}'.replace('lat', this._getMapCenterLatitude()).replace('long', this._getMapCenterLongitude()).replace('range', parseInt(this._getMapViewRadius()) * 1.2)
+        } catch(err) {
+          console.log(err);
+          //return 'http://localhost:5000/clients'
+          return 'https://vatsim-status-proxy.herokuapp.com/clients'
+        } 
+      }
+    }
+
+    window.customElements.define(VatsimmapPage.is, VatsimmapPage);
+  </script>
+</dom-module>
