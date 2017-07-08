@@ -16,6 +16,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/google-map/google-map.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/polymer/lib/utils/async.html">
 
 <dom-module id="vatsimmap-page">
   <template>
@@ -38,7 +39,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
     </style>
 
     <iron-ajax
-          auto
           id="ajax"
           url="{{_getClientURL()}}"
           handle-as="json"
@@ -94,13 +94,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
       ready() {
         super.ready();
 
-        this.$.map.addEventListener('google-map-dragend', e => {this._mapDrag(e)});
-
+        this.$.map.addEventListener('google-map-drag', e => {this._mapUpdate(e)});
+        this.$.map.addEventListener('zoom-changed', e => {this._mapUpdate(e)});
+        this._mapUpdate(this.$.map);
       }
 
-      _mapDrag(e) {
+      _mapUpdate(e) {
         var update = false;
-        console.log(Math.abs(this.$.map.latitude - this.lastLatitude));
         if (Math.abs(this.$.map.latitude - this.lastLatitude) > 2) {
           this.lastLatitude = this.$.map.latitude;
           update = true;
@@ -120,17 +120,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
         }
       }
 
-      handleResponse() {
-        this.async(function() {
-          try {
-            //console.log(this.$.ajax.url);
-            this.$.ajax.url = this._getClientURL();
-            this.$.ajax.generateRequest();
-          } catch(err) {
-            console.log(err);
-          }
-        }, 5000);
-      }
       _getMapCenterLatitude() {
         if (this.$.map.map) {
           return this.$.map.map.getCenter().lat();
