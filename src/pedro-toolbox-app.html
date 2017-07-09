@@ -19,15 +19,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/maps-icons.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="fsn-avwx-metar/fsn-avwx-metar.html">
+<link rel="import" href="fsn-icao-notam/fsn-icao-notam.html">
 <link rel="import" href="my-icons.html">
 
-<link rel="lazy-import" href="metar-page.html">
 <link rel="lazy-import" href="oceanic-report-page.html">
 <link rel="lazy-import" href="home-page.html">
 <link rel="lazy-import" href="my-view404.html">
 <link rel="lazy-import" href="vatsimmap-page.html">
-<link rel="lazy-import" href="notam-page.html">
 
 <dom-module id="pedro-toolbox-app">
   <template>
@@ -35,12 +39,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host {
         --app-primary-color: #689f38;
         --app-secondary-color: #387002;
+        --app-highlight-color: #ffff8d;
 
         display: block;
-      }
-
-      app-drawer-layout:not([narrow]) [drawer-toggle] {
-        display: none;
       }
 
       app-header {
@@ -76,6 +77,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         left: 0;
         right: 0;
       }
+
+      .toolbar paper-input {
+        --paper-input-container-color: white;
+        --paper-input-container-focus-color: var(--app-highlight-color);
+        --paper-input-container-input-color: white;
+
+        margin-top: -20px;
+      }
+
+      #rightDrawer {
+        --app-drawer-width: 330px;
+      }
+      paper-tab {
+        --paper-tab-ink: var(--app-primary-color);
+      }
+      #rightDrawer iron-pages {
+        height: 100%;
+        text-align: left;
+      }
+      #rightDrawer iron-pages > * {
+        width: 100%;
+        height: 100%;
+      }
+/*
+      #rightDrawer > app-toolbar {
+        width: 100%;
+      }
+      #rightDrawer > app-toolbar > paper-input {
+        width: 90%;
+      }
+      #rightDrawer > app-toolbar > paper-icon-button {
+        text-align: right
+      }*/
+
     </style>
 
     <app-location route="{{route}}"></app-location>
@@ -85,40 +120,65 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
-    <app-drawer-layout fullbleed>
+    <app-drawer-layout fullbleed force-narrow>
     
-      <!-- Drawer content -->
-      <app-drawer id="drawer" slot="drawer">
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="home" href="home">Home</a>
-          <a name="vatsimmap" href="vatsimmap">VATSIM Map</a>
-          <a name="metar" href="metar">METAR</a>
-          <a name="notam" href="notam">NOTAMs</a>
-          <a name="oceanic-report" href="oceanic-report">Oceanic Report Tool</a>
-        </iron-selector>
+      <!-- Left Drawer -->
+      <app-drawer id="leftDrawer" slot="drawer" swipe-open>
+
+        <div style="height: 100%; overflow: auto;">
+          <app-toolbar>Route</app-toolbar>
+
+          <paper-input label="Departure">
+            <iron-icon icon="icons:flight-takeoff" slot="prefix"></iron-icon>
+          </paper-input>
+          <paper-input label="Arrival">
+            <iron-icon icon="icons:flight-land" slot="prefix"></iron-icon>
+          </paper-input>
+        </div>
+      </app-drawer>
+
+
+      <!-- Right Drawer -->
+      <app-drawer id="rightDrawer" slot="drawer" swipe-open align="right">
+        <app-toolbar>Additional Info</app-toolbar>
+
       </app-drawer>
 
       <!-- Main content -->
       <app-header-layout has-scrolling-region>
 
         <app-header slot="header" condenses reveals effects="waterfall">
-          <app-toolbar>
-            <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>Pedro's Toolbox</div>
+          <app-toolbar class="toolbar">
+            <paper-icon-button icon="maps:near-me" on-tap="_toggleLeftDrawer"></paper-icon-button>
+
+            <div main-title></div>
+
+            <paper-input><iron-icon icon="icons:search" slot="prefix"></iron-icon></paper-input>
+
+            <paper-icon-button icon="icons:info-outline" on-tap="_toggleRightDrawer" align="right"></paper-icon-button>
+
           </app-toolbar>
+          <paper-tabs sticky selected="{{page}}" attr-for-selected="name" role="navigation">
+            <paper-tab name="vatsimmap">MAP</paper-tab>
+            <paper-tab name="metar">AIRPORT INFORMATION</paper-tab>
+            <paper-tab name="notam">TOOLS</paper-tab>
+          </paper-tabs>
+          <paper-progress></paper-progress>
         </app-header>
+
 
         <iron-pages selected="[[page]]"
                     attr-for-selected="name"
                     fallback-selection="view404"
                     role="main">
           <home-page name="home"></home-page>
+
           <vatsimmap-page name="vatsimmap"></vatsimmap-page>
           <metar-page name="metar"></metar-page>
           <notam-page name="notam"></notam-page>
           <oceanic-report-page name="oceanic-report"></oceanic-report-page>
           <my-view404 name="view404"></my-view404>
+          
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
@@ -156,6 +216,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.rootPattern = (new URL(this.rootPath)).pathname;
       }
 
+      _toggleLeftDrawer() {
+        this.$.leftDrawer.toggle();
+      }
+
+      _toggleRightDrawer() {
+        this.$.rightDrawer.toggle();
+      }
+
       _routePageChanged(page) {
         // Polymer 2.0 will call with `undefined` on initialization.
         // Ignore until we are properly called with a string.
@@ -168,8 +236,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = page || 'home';
 
         // Close a non-persistent drawer when the page & route are changed.
-        if (!this.$.drawer.persistent) {
-          this.$.drawer.close();
+        if (!this.$.leftDrawer.persistent) {
+          this.$.leftDrawer.close();
         }
       }
 
