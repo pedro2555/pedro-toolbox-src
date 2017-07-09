@@ -41,7 +41,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
           id="ajax"
           url="{{_getClientURL()}}"
           handle-as="json"
-          last-response="{{clients}}"></iron-ajax>
+          last-response="{{clients}}"
+          on-response="handleResponse"></iron-ajax>
 
     <google-map
           additional-map-options='{"mapTypeId":"satellite"}'
@@ -54,9 +55,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
           drag-events="true"
           id="map">
 
-      <template is="dom-repeat" items="[[clients._items]]">
+<!--       <template is="dom-repeat" items="[[clients._items]]">
         <google-map-marker latitude="{{_getLatitudeFromLocation(item.location)}}" longitude="{{_getLongitudeFromLocation(item.location)}}" draggable="false" title="{{item.callsign}} - {{item.realname}}" icon="circle"></google-map-marker>
-      </template>
+      </template> -->
 
     </google-map>
 
@@ -86,6 +87,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
           lastZoom: {
             type: Number,
             value: 0
+          },
+          aircraftMarkers: {
+            type: Array,
+            value: {}
+          },
+          selectedPilot: {
+            type: String,
+            value: ''
           }
         }
       }
@@ -96,6 +105,64 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
         this.$.map.addEventListener('google-map-drag', e => {this._mapUpdate(e)});
         this.$.map.addEventListener('zoom-changed', e => {this._mapUpdate(e)});
         this._mapUpdate(this.$.map);
+      }
+
+      handleResponse() {
+        var clients = this.clients._items;
+        for (var i = 0, len = clients.length; i < len; i++) {
+
+          var client = clients[i];
+
+          if (client.clienttype == 'PILOT') {
+
+            var client_x_sprite = client.heading;
+            if (client_x_sprite > 180) {
+              client_x_sprite = client_x_sprite - 180;
+            } else {
+              client_x_sprite = client_x_sprite + 180;
+            }
+            client_x_sprite = Math.round(Math.abs(client_x_sprite / 15));
+
+            var image = {
+              url: 'https://rawgit.com/pedro2555/pedro-toolbox/master/images/aircraft-icons.png',
+              // This marker is 20 pixels wide by 32 pixels high.
+              size: new google.maps.Size(48, 48),
+              // The origin for this image is (0, 0).
+              origin: new google.maps.Point(client_x_sprite * 48, 3 * 48),
+              // The anchor for this image is the base of the flagpole at (0, 32).
+              anchor: new google.maps.Point(24, 24)
+            };
+            var shape = {
+              coords: [1, 1, 1, 20, 18, 20, 18, 1],
+              type: 'poly'
+            };
+
+            var marker = this.aircraftMarkers[client.callsign + client.cid];
+            if (marker != undefined) {
+              marker.setPosition({lat: client['location'][1], lng: client['location'][0]});
+            } else {
+
+              // Add the new marker
+              marker = new google.maps.Marker({
+                position: {lat: client['location'][1], lng: client['location'][0]},
+                map: this.$.map.map,
+                label: client.route,
+                icon: image,
+                title: client.callsign
+              });
+
+              // marker.addListener('click', function (e) {
+              //   this.selectedPilot = marker.title;
+
+              //   console.log(this.selectedPilot);
+              // });
+
+              this.aircraftMarkers[client.callsign + client.cid] = marker;
+
+            }
+          }
+
+        }
       }
 
       _mapUpdate(e) {
