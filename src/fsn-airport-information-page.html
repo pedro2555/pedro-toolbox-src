@@ -42,7 +42,7 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       }
     </style>
 
-    <paper-tabs sticky selected="{{page}}" attr-for-selected="name" role="navigation">
+    <paper-tabs selected="{{page}}" attr-for-selected="name" role="navigation">
       <paper-tab name="info">INFO</paper-tab>
       <paper-tab name="metar">METAR</paper-tab>
       <paper-tab name="taf">TAF</paper-tab>
@@ -56,9 +56,9 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
                 role="main">
 
       <div name="info">Work in progress</div>
-      <fsn-avwx-metar name="metar" search-value="{{searchValue}}"></fsn-avwx-metar>
+      <fsn-avwx-metar name="metar" search-value="{{icao}}"></fsn-avwx-metar>
       <div name="taf">Work in progress</div>
-      <fsn-icao-notam name="notam" search-value="{{searchValue}}"></fsn-icao-notam>
+      <fsn-icao-notam name="notam" search-value="{{icao}}"></fsn-icao-notam>
       <div name="charts">Work in progress</div>
 
     </iron-pages>
