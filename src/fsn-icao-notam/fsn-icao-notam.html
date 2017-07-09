@@ -25,14 +25,19 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
 
-<dom-module id="fsn-avwx-metar">
+<dom-module id="fsn-icao-notam">
   <template>
     <style include="shared-styles">
       :host {
         display: block;
 
         padding: 10px;
+      }
+
+      html {
+        white-space: warp;
       }
       paper-spinner {
         margin: 0 auto;
@@ -41,14 +46,21 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       paper-icon-item {
         color: black;
       }
+      .long {
+        padding-top: 15px;
+        padding-bottom: 15px;
+      }
+      .warp {
+        white-space: pre-wrap;
+      }
     </style>
 
     <iron-ajax
-      id="metar"
+      id="notam"
       auto
       url="[[url]]"
       handle-as="json"
-      last-response="{{metar}}"
+      last-response="{{notams}}"
       debounce-duration="300"
       loading="{{isloading}}"></iron-ajax>
 
@@ -56,102 +68,65 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       <paper-input autocapitalize label="ICAO" value="{{searchValue}}"></paper-input>
     </template>
 
-    <!--Either show spinner, error, or found metar-->
-    <paper-item>
-      <paper-item-body two-line>
-
-        <template is="dom-if" if="{{_isMetar(metar)}}">
-          <div>[[metar.Station]] [[metar.Info.Name]]</div>
-          <div secondary>[[metar.Info.City]] [[metar.Info.Country]]</div>
-        </template>
-
-        <template is="dom-if" if="{{_isLoading(metar)}}">
-          <paper-spinner active></paper-spinner>
-        </template>
-
-        <template is="dom-if" if="{{_isError(metar)}}">
-          <p>[[metar.Error]]</p>
-        </template>
-
-      </paper-item-body>
-    </paper-item>
-
-    <!-- 
-    Display all known metar properties
-    -->
-    <template is="dom-if" if="{{_isMetar(metar)}}">
-
-      <!--All of those are always present-->
-      <paper-icon-item>
-        <paper-item-body two-line>
-          <div>[[metar.Translations.Wind]]</div>
-          <div secondary>Winds</div>
-        </paper-item-body>
-      </paper-icon-item>
-
-      <paper-icon-item>
-        <paper-item-body two-line>
-          <div>[[metar.Translations.Visibility]]</div>
-          <div secondary>Visibility</div>
-        </paper-item-body>
-      </paper-icon-item>
-
-      <paper-icon-item>
-        <paper-item-body two-line>
-          <div>[[metar.Translations.Clouds]]</div>
-          <div secondary>Clouds</div>
-        </paper-item-body>
-      </paper-icon-item>
-
-      <paper-icon-item>
-        <paper-item-body three-line>
-          <div>[[metar.Translations.Temperature]]</div>
-          <div>[[metar.Translations.Dewpoint]]</div>
-          <div secondary>Temperature and Dewpoint</div>
-        </paper-item-body>
-      </paper-icon-item>
-
-      <paper-icon-item>
-        <paper-item-body two-line>
-          <div>[[metar.Translations.Altimeter]]</div>
-          <div secondary>Altimeter</div>
-        </paper-item-body>
-      </paper-icon-item>
-
-      <!--Next two may or not be present, so checking for that before stamping them-->
-      <template is="dom-if" if="[[metar.Translations.Other]]">
-        <paper-icon-item>
-          <paper-item-body two-line>
-            <div>[[metar.Translations.Other]]</div>
-            <div secondary>Additional Information</div>
-          </paper-item-body>
-        </paper-icon-item>
-      </template>
-
-      <template is="dom-if" if="[[metar.Remarks]]">
-        <paper-icon-item>
-          <paper-item-body two-line>
-            <div>[[metar.Remarks]]</div>
-            <div secondary>Remarks</div>
-          </paper-item-body>
-        </paper-icon-item>
-      </template>
-
-      <!--For last the raw report, in case some actual info was missed above-->
+    <template is="dom-repeat" items="{{notams}}">
       <paper-item>
         <paper-item-body two-line>
-          <div>[[_getRawReport(metar)]]</div>
-          <div secondary>Raw report</div>
+
+            <div>[[item.key]]</div>
+
+          <template is="dom-if" if="{{_isLoading(notam)}}">
+            <paper-spinner active></paper-spinner>
+          </template>
+
+          <template is="dom-if" if="{{_isError(notam)}}">
+            <p>[[metar.Error]]</p>
+          </template>
+
+        </hr>
         </paper-item-body>
       </paper-item>
 
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.startdate]]</div>
+          <div secondary>Valid From</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.enddate]]</div>
+          <div secondary>Valid Until</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.SubArea]]</div>
+          <div secondary>Area</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item>
+        <paper-item-body two-line>
+          <div class="warp">[[item.Subject]]</div>
+          <div secondary>Subject</div>
+        </paper-item-body>
+      </paper-icon-item>
+
+      <paper-icon-item class="long">
+        <paper-item-body two-line>
+          <div class="warp">[[item.message]]</div>
+          <div secondary>Message</div>
+        </paper-item-body>
+      </paper-icon-item>
     </template>
 
   </template>
 
   <script>
-    class FsnAvwxMetar extends Polymer.Element {
-      static get is() { return 'fsn-avwx-metar'; }
+    class FsnIcaoNotam extends Polymer.Element {
+      static get is() { return 'fsn-icao-notam'; }
 
       static get properties() {
         return {
@@ -159,8 +134,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
             type: Boolean,
             value: false
           },
-          metar: {
-            type: Object,
+          notams: {
+            type: Array,
             value: undefined,
             notify: true
           },
@@ -173,11 +148,11 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
           }
         }
       }
-      
+
       _computeUrl(searchValue) {
         if (searchValue.length == 4) {
           this.metar = null;
-          return ["https://avwx.rest/api/metar", searchValue].join('/') + "?options=info,translate";
+          return ["https://v4p4sz5ijk.execute-api.us-east-1.amazonaws.com/anbdata/states/notams/notams-list?api_key=2a877ab0-4ed2-11e7-9b2e-d3182793b831&format=json&locations", searchValue].join('=');
         }
         return null;
       }
@@ -194,12 +169,8 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         return metar != null && metar != undefined && metar.Error == undefined;
       }
 
-      _getRawReport(metar) {
-        return metar['Raw-Report'];
-      }
-
     }
 
-    window.customElements.define(FsnAvwxMetar.is, FsnAvwxMetar);
+    window.customElements.define(FsnIcaoNotam.is, FsnIcaoNotam);
   </script>
 </dom-module>
