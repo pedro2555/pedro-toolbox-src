@@ -58,6 +58,13 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
         display: inline-block;
         width: 24.5%;
       }
+      .long {
+        padding-top: 15px;
+        padding-bottom: 15px;
+      }
+      .warp {
+        white-space: pre-wrap;
+      }
     </style>
 
     <paper-input class="group3"
@@ -116,12 +123,12 @@ along with Pedro's Toolbox App.  If not, see <http://www.gnu.org/licenses/>.
       </paper-input>
 
       <!--Show usefull phraseology-->
-      <paper-item>
+      <paper-icon-item class="long">
         <paper-item-body two-line>
-          <div>{{clearencePhraseology}}</div>
+          <div class="warp">{{clearencePhraseology}}</div>
           <div secondary>Clearence phraseology</div>
         </paper-item-body>
-      </paper-item>
+      </paper-icon-item>
 
     </template>
 
